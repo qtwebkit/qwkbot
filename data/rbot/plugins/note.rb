@@ -35,7 +35,7 @@ class NotePlugin < Plugin
     'note <nick> <string> => stores a note (<string>) for <nick>'
   end
 
-  def message(m)
+  def join(m)
     begin
       nick = m.sourcenick.downcase
       # Keys are case insensitive to avoid storing a message
@@ -52,15 +52,16 @@ class NotePlugin < Plugin
         end
       end
       unless pub.empty?
-        @bot.say m.replyto, "#{m.sourcenick}, you have notes! " +
-          pub.join(' ')
+        msg = Proc.new { @bot.say m.channel, "Hello #{m.sourcenick}, you have a message! " + pub.join(' ') }
+        @bot.timer.add_once(10) { msg.call }
       end
       unless priv.empty?
-        @bot.say m.sourcenick, 'you have notes! ' + priv.join(' ')
+        msg = Proc.new { @bot.say m.sourcenick, "Hello #{m.sourcenick}, you have a message! " + priv.join(' ') }
+        @bot.timer.add_once(10) { msg.call }
       end
       @registry.delete nick
     rescue Exception => e
-      m.reply e.message
+      @bot.say m.channel, "error: #{e.message}"
     end
   end
 
